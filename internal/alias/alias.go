@@ -22,7 +22,14 @@ type Aliases map[string]Entry
 // or defaults to ~/.config/koolkit/goto.json.
 func DefaultPaths() []string {
 	if v := os.Getenv("KK_GOTO_CONFIG"); v != "" {
-		return strings.Split(v, ":")
+		parts := strings.Split(v, ":")
+		var filtered []string
+		for _, p := range parts {
+			if p != "" {
+				filtered = append(filtered, p)
+			}
+		}
+		return filtered
 	}
 	cfg := os.Getenv("XDG_CONFIG_HOME")
 	if cfg == "" {
@@ -54,15 +61,6 @@ func Load(paths []string) Aliases {
 	return out
 }
 
-// ResolveUser returns the mapped user and host for the given name,
-// or the literal name unchanged if no alias exists.
-func (a Aliases) ResolveUser(name string) (string, string) {
-	if e, ok := a[name]; ok && e.User != "" {
-		return e.User, e.Host
-	}
-	return name, ""
-}
-
 // ResolveRepo returns the mapped repo for the given user alias and repo,
 // or the literal repo unchanged if no alias exists.
 func (a Aliases) ResolveRepo(userAlias, repo string) string {
@@ -72,4 +70,13 @@ func (a Aliases) ResolveRepo(userAlias, repo string) string {
 		}
 	}
 	return repo
+}
+
+// ResolveUser returns the mapped user and host for the given name,
+// or the literal name unchanged if no alias exists.
+func (a Aliases) ResolveUser(name string) (string, string) {
+	if e, ok := a[name]; ok && e.User != "" {
+		return e.User, e.Host
+	}
+	return name, ""
 }

@@ -34,6 +34,7 @@ func Execute() int {
 			if len(args) > 0 {
 				o, uAlias = parsePositional(o, args)
 			}
+			o = defaultTarget(o)
 			a := alias.Load(alias.DefaultPaths())
 			o = resolve(a, o, uAlias)
 			u, ok := url.BuildURL(o)
@@ -58,6 +59,16 @@ func Execute() int {
 		return 1
 	}
 	return 0
+}
+
+// defaultTarget picks issues as the default target when a number is given
+// without an explicit -i/-p, matching the positional-arg behavior so
+// `kk goto -u o -r r -n 5` and `kk goto o r 5` resolve alike.
+func defaultTarget(o url.Opts) url.Opts {
+	if o.Number > 0 && !o.Issues && !o.Pulls {
+		o.Issues = true
+	}
+	return o
 }
 
 // parsePositional fills user/repo/number from `owner repo number` or

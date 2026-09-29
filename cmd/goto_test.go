@@ -9,6 +9,24 @@ import (
 	"github.com/localshred/koolkit/pkg/run"
 )
 
+func TestDefaultTargetNumberImpliesIssues(t *testing.T) {
+	got := defaultTarget(url.Opts{User: "foo", Repo: "bar", Number: 5})
+	if !got.Issues || got.Pulls {
+		t.Fatalf("number without -i/-p should default to issues, got %+v", got)
+	}
+	u, ok := url.BuildURL(got)
+	if !ok || u != "https://github.com/foo/bar/issues/5" {
+		t.Fatalf("url = %q ok=%v", u, ok)
+	}
+}
+
+func TestDefaultTargetRespectsExplicitPulls(t *testing.T) {
+	got := defaultTarget(url.Opts{User: "foo", Repo: "bar", Number: 5, Pulls: true})
+	if got.Issues {
+		t.Fatalf("explicit -p must not be overridden by issues default, got %+v", got)
+	}
+}
+
 func TestResolveAppliesAliases(t *testing.T) {
 	a := alias.Aliases{"l": {User: "localshred", Repos: map[string]string{"d": "dotfiles"}}}
 	got := resolve(a, url.Opts{User: "l", Repo: "d"}, "l")
